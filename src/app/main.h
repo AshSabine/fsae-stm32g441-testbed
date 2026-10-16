@@ -4,8 +4,8 @@
 void Error_Handler(void);
 
 // LED config
-#define LED_GPIO_PORT	GPIOA
-#define LED_GPIO_PIN	GPIO_PIN_13
+#define LED_GPIO_PORT	GPIOB
+#define LED_GPIO_PIN	GPIO_PIN_11
 
 #define BLINK_MIN_MS	100U
 #define BLINK_MAX_MS	1000U
@@ -19,7 +19,7 @@ void Error_Handler(void);
 #define POT_ADC_INST	ADC1
 
 #define POT_SAMPLE_MS	20U
-#define POT_FILTER_N	8U
+#define POT_FILTER_N	16U
 
 #define POT_ADC_MAX	4095U
 #define POT_CAN_ID	0x100U

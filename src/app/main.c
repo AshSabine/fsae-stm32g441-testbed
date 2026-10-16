@@ -34,13 +34,17 @@ static volatile uint16_t g_pot_out = POT_ADC_MAX;
 static void task_pot_sample(void *pvParameters) {
 	(void) pvParameters;
 	TickType_t nextWakeTime = xTaskGetTickCount();
+
+	uint16_t pot_out;
 	for (;;) {
 		//	Read data from ADC
 		uint16_t raw;
 		if (core_ADC_read_channel(POT_GPIO_PORT, POT_GPIO_PIN, &raw)) {
-			rprintf("raw pot outptu: %4d", raw);
 			float filt = core_filter_update(raw, &g_pot_filt);
-			g_pot_out = (uint16_t)(filt + 0.5f);
+			pot_out = (uint16_t)(filt + 0.5f);
+			
+			if (pot_out != g_pot_out) rprintf("raw pot output: %4d\n", raw);
+			g_pot_out = pot_out;
 		}
 
 		//	Push to software queue
@@ -65,10 +69,14 @@ static uint32_t blink_from_adc(uint16_t v) {
 static void task_led_blink(void *pvParameters) {
 	(void) pvParameters;
 	TickType_t nextWakeTime = xTaskGetTickCount();
+	
+	uint16_t blink_ms;
 	for (;;) {
 		//	Find blink time
-		g_blink_ms = blink_from_adc(g_adc_val);
-		rprintf("g_blink_ms: %0.2f", g_blink_ms);
+		blink_ms = blink_from_adc(g_adc_val);
+		if (blink_ms != g_blink_ms) rprintf("blink_ms: %4d\n", blink_ms);	
+		
+		g_blink_ms = blink_ms;
 		TickType_t half = pdMS_TO_TICKS(g_blink_ms >> 1);
 
 		//	Blink
@@ -188,19 +196,19 @@ int main(void) {
 	#if ROLE == ROLE_TX
 	err = xTaskCreate(task_CAN_tx, "CAN_tx", 2000, NULL, CAN_TX_PRIORITY, NULL);
 	if (err != pdPASS) error_handler();
-	else rprintf("Task CAN_tx started...");
+	else rprintf("Task CAN_tx started...\n");
 
 	err = xTaskCreate(task_pot_sample, "pot_sample", 512, NULL, 3, NULL);
 	if (err != pdPASS) error_handler();
-	else rprintf("Task pot_sample started...");
+	else rprintf("Task pot_sample started...\n");
 	#else
 	err = xTaskCreate(task_CAN_rx, "CAN_rx", 2000, NULL, CAN_RX_PRIORITY, NULL);
 	if (err != pdPASS) error_handler();
-	else rprintf("Task CAN_rx started...");
+	else rprintf("Task CAN_rx started...\n");
 
 	err = xTaskCreate(task_led_blink, "led_blink", 512, NULL, 3, NULL);
 	if (err != pdPASS) error_handler();
-	else rprintf("Task led_blink started...");
+	else rprintf("Task led_blink started...\n");
 	#endif
 
 	//	Common
