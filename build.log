@@ -1,0 +1,209 @@
+Makefile:171: COMPILE [WARN]: Source files for module 'DRIVER' missing!
+COMPILE [CC    ] [APP] main.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_adc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_adc_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_comp.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_cordic.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_cortex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_crc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_crc_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_cryp.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_cryp_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_dac.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_dac_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_dma.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_dma_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_exti.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_fdcan.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_flash.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_flash_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_flash_ramfunc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_fmac.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_gpio.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_hrtim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_i2c.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_i2c_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_i2s.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_irda.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_iwdg.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_lptim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_msp_template.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_nand.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_nor.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_opamp.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_opamp_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_pcd.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_pcd_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_pwr.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_pwr_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_qspi.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_rcc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_rcc_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_rng.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_rtc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_rtc_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_sai.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_sai_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_smartcard.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_smartcard_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_smbus.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_smbus_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_spi.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_spi_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_sram.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_tim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_timebase_tim_template.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_tim_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_uart.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_uart_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_usart.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_usart_ex.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_hal_wwdg.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_adc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_comp.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_cordic.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_crc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_crs.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_dac.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_dma.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_exti.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_fmac.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_fmc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_gpio.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_hrtim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_i2c.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_lptim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_lpuart.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_opamp.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_pwr.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_rcc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_rng.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_rtc.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_spi.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_tim.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_ucpd.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_usart.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_usb.c
+COMPILE [CC    ] [STM32CUBE] stm32g4xx_ll_utils.c
+COMPILE [CC    ] [STM32CUBE] system_stm32g4xx.c
+COMPILE [CC    ] [FREERTOS] croutine.c
+COMPILE [CC    ] [FREERTOS] event_groups.c
+COMPILE [CC    ] [FREERTOS] list.c
+COMPILE [CC    ] [FREERTOS] queue.c
+COMPILE [CC    ] [FREERTOS] stream_buffer.c
+COMPILE [CC    ] [FREERTOS] tasks.c
+COMPILE [CC    ] [FREERTOS] timers.c
+COMPILE [CC    ] [FREERTOS] port.c
+COMPILE [CC    ] [FREERTOS] heap_4.c
+COMPILE [CC    ] [RTT] SEGGER_RTT.c
+COMPILE [CC    ] [RTT] SEGGER_RTT_Syscalls_GCC.c
+COMPILE [CC    ] [RTT] SEGGER_RTT_printf.c
+COMPILE [CC    ] [DBC] inverter_dbc.c
+COMPILE [CC    ] [DBC] main_dbc.c
+In file included from /nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.c:34:
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.h:2807:1: note: offset of packed bit-field 'vc_rl_status' has changed in GCC 4.4
+ 2807 | };
+      | ^
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.h:3164:1: note: offset of packed bit-field 'vc_target_slip_ratio' has changed in GCC 4.4
+ 3164 | };
+      | ^
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.h:3164:1: note: offset of packed bit-field 'vc_tc_activation_threshold' has changed in GCC 4.4
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.h:3234:1: note: offset of packed bit-field 'vc_steer_angle' has changed in GCC 4.4
+ 3234 | };
+      | ^
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/main_dbc.h:4219:1: note: offset of packed bit-field 'dsac_pressure_state' has changed in GCC 4.4
+ 4219 | };
+      | ^
+COMPILE [CC    ] [DBC] sensor_dbc.c
+In file included from /nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/sensor_dbc.c:34:
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/sensor_dbc.h:7733:1: note: offset of packed bit-field 'vc_motor_pwm' has changed in GCC 4.4
+ 7733 | };
+      | ^
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/sensor_dbc.h:10805:1: note: offset of packed bit-field 'bms_soc' has changed in GCC 4.4
+10805 | };
+      | ^
+/nix/store/lr7wj69wzv86l3bsj5kqskd83943a5ia-fsae-dbc/share/fsae-dbc/c_files/sensor_dbc.h:10924:1: note: offset of packed bit-field 'lvbms_charge_state' has changed in GCC 4.4
+10924 | };
+      | ^
+COMPILE [CC    ] [CORE] adc.c
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/adc.c: In function 'core_ADC_read_channel':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/adc.c:276:14: warning: unused variable 'chan' [-Wunused-variable]
+  276 |     uint32_t chan;
+      |              ^~~~
+COMPILE [CC    ] [CORE] can.c
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c: In function 'rx_handler':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:410:14: warning: unused variable 't2' [-Wunused-variable]
+  410 |     uint16_t t2;
+      |              ^~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:409:14: warning: unused variable 'old_msb' [-Wunused-variable]
+  409 |     uint32_t old_msb;
+      |              ^~~~~~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:408:18: warning: unused variable 't3' [-Wunused-variable]
+  408 |     uint32_t t1, t3;
+      |                  ^~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:408:14: warning: unused variable 't1' [-Wunused-variable]
+  408 |     uint32_t t1, t3;
+      |              ^~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c: At top level:
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:91:26: warning: 'can3' defined but not used [-Wunused-variable]
+   91 | static core_CAN_module_t can3;
+      |                          ^~~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/can.c:90:26: warning: 'can2' defined but not used [-Wunused-variable]
+   90 | static core_CAN_module_t can2;
+      |                          ^~~~
+COMPILE [CC    ] [CORE] clock.c
+COMPILE [CC    ] [CORE] error_handler.c
+COMPILE [CC    ] [CORE] filter.c
+COMPILE [CC    ] [CORE] gpio.c
+COMPILE [CC    ] [CORE] i2c.c
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c: In function 'I2C_register_read':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c:31:32: warning: unused parameter 'bus' [-Wunused-parameter]
+   31 | bool I2C_register_read(uint8_t bus, uint8_t devid, uint8_t regid, uint8_t* buf, uint8_t buflen) {
+      |                        ~~~~~~~~^~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c: In function 'I2C_register_write':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c:35:33: warning: unused parameter 'bus' [-Wunused-parameter]
+   35 | bool I2C_register_write(uint8_t bus, uint8_t devid, uint8_t regid, uint8_t* buf, uint8_t buflen) {
+      |                         ~~~~~~~~^~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c: In function 'I2C_register_read':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c:33:1: warning: control reaches end of non-void function [-Wreturn-type]
+   33 | }
+      | ^
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c: In function 'I2C_register_write':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/i2c.c:37:1: warning: control reaches end of non-void function [-Wreturn-type]
+   37 | }
+      | ^
+COMPILE [CC    ] [CORE] rtc.c
+COMPILE [CC    ] [CORE] spi.c
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/spi.c: In function 'core_SPI_read_write':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/spi.c:141:13: warning: variable 'temp' set but not used [-Wunused-but-set-variable]
+  141 |     uint8_t temp;
+      |             ^~~~
+COMPILE [CC    ] [CORE] timeout.c
+COMPILE [CC    ] [CORE] timestamp.c
+COMPILE [CC    ] [CORE] usart.c
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c: In function 'USART_IRQHandler':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c:148:21: warning: unused variable 'dummy' [-Wunused-variable]
+  148 |             uint8_t dummy = usart->RDR;
+      |                     ^~~~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c: In function 'core_USART_receive':
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c:191:14: warning: variable 'indata' set but not used [-Wunused-but-set-variable]
+  191 |     uint32_t indata;
+      |              ^~~~~~
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c: At top level:
+/nix/store/59rblf4i5gi1bm1mn44wrbfl6kirhs6a-fsae-core-g441/share/fsae-core-g441/src/driver/Src/usart.c:21:28: warning: 'uart5' defined but not used [-Wunused-variable]
+   21 | static core_USART_module_t uart5;
+      |                            ^~~~~
+COMPILE [AS    ] [STM32CUBE] startup_stm32g441xx.s
+COMPILE [LD    ] AshIntroProjectFSAE-f33.elf
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o): in function `_close_r':
+closer.c:(.text._close_r+0xc): warning: _close is not implemented and will always fail
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o): note: the message above does not take linker garbage collection into account
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o): in function `_lseek_r':
+lseekr.c:(.text._lseek_r+0x10): warning: _lseek is not implemented and will always fail
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o): note: the message above does not take linker garbage collection into account
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o): in function `_read_r':
+readr.c:(.text._read_r+0x10): warning: _read is not implemented and will always fail
+/nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/bin/ld: /nix/store/0124y4q31avv68mk0x706sg8l23rrj0p-gcc-arm-embedded-15.2.rel1/bin/../lib/gcc/arm-none-eabi/15.2.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o): note: the message above does not take linker garbage collection into account
+COMPILE [BIN   ] AshIntroProjectFSAE-f33.bin
+COMPILE [IHEX  ] AshIntroProjectFSAE-f33.ihex

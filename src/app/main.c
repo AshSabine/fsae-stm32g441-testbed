@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 #include "can.h"
+#include "adc.h"
+#include "rtt.h"
 #include "clock.h"
 #include "gpio.h"
 #include "filter.h"
@@ -29,13 +31,14 @@ static bool init_pot_adc(void) {
 //	This pushes data to the software queue. A seperate function moves data from
 //	the software queue to the hardware queue (which must be isolated).
 static volatile uint16_t g_pot_out = POT_ADC_MAX;
-static bool task_pot_sample(void *pvParameters) {
+static void task_pot_sample(void *pvParameters) {
 	(void) pvParameters;
 	TickType_t nextWakeTime = xTaskGetTickCount();
 	for (;;) {
 		//	Read data from ADC
 		uint16_t raw;
-		if (core_ADC_read_channel(PORT_GPIO_PORT*, PORT_GPIO_PIN*, &raw)) {
+		if (core_ADC_read_channel(POT_GPIO_PORT, POT_GPIO_PIN, &raw)) {
+			rprintf("raw pot outptu: %4d", raw);
 			float filt = core_filter_update(raw, &g_pot_filt);
 			g_pot_out = (uint16_t)(filt + 0.5f);
 		}
@@ -43,7 +46,7 @@ static bool task_pot_sample(void *pvParameters) {
 		//	Push to software queue
 		if (!core_CAN_add_message_to_tx_queue(
 			CAN_INST, POT_CAN_ID, 2,
-			(uint64_t)g_pot_out) return false;
+			(uint64_t)g_pot_out)) error_handler();
 
 		vTaskDelayUntil(&nextWakeTime, pdMS_TO_TICKS(POT_SAMPLE_MS));
 	}
@@ -65,6 +68,7 @@ static void task_led_blink(void *pvParameters) {
 	for (;;) {
 		//	Find blink time
 		g_blink_ms = blink_from_adc(g_adc_val);
+		rprintf("g_blink_ms: %0.2f", g_blink_ms);
 		TickType_t half = pdMS_TO_TICKS(g_blink_ms >> 1);
 
 		//	Blink
@@ -128,7 +132,7 @@ static void CAN_rx_main() {
 		case POT_CAN_ID:
 			if (msg.dlc != 2) break;
 
-			uint16 v = (uint16_t)(msg.data & 0xFFFFU);
+			uint16_t v = (uint16_t)(msg.data & 0xFFFFU);
 			if (v > POT_ADC_MAX) v = POT_ADC_MAX;
 			g_adc_val = v;
 			
@@ -154,7 +158,7 @@ void heartbeat_task(void *pvParameters) {
 	(void) pvParameters;
 	while(true) {
 		core_GPIO_toggle_heartbeat();
-		vTaskDelay(pdMS_TO_TICKS(100));
+		vTaskDelay(pdMS_TO_TICKS(100*ROLE));
 	}
 }
 
@@ -166,10 +170,11 @@ int main(void) {
 	if (!init_CAN()) error_handler();
 
 	//	Common
+	core_RTT_init();
 	core_heartbeat_init(GPIOB, GPIO_PIN_10);
 	core_GPIO_set_heartbeat(GPIO_PIN_RESET);
 	
-	if (!core_GPIO_init(LED_GPIO_PORT, LED_GPIO_PIN, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL)) error_handler();
+	core_GPIO_init(LED_GPIO_PORT, LED_GPIO_PIN, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL);
 
 	//	Role-dependent
 	#if ROLE == ROLE_TX
@@ -183,15 +188,19 @@ int main(void) {
 	#if ROLE == ROLE_TX
 	err = xTaskCreate(task_CAN_tx, "CAN_tx", 2000, NULL, CAN_TX_PRIORITY, NULL);
 	if (err != pdPASS) error_handler();
-	
+	else rprintf("Task CAN_tx started...");
+
 	err = xTaskCreate(task_pot_sample, "pot_sample", 512, NULL, 3, NULL);
 	if (err != pdPASS) error_handler();
+	else rprintf("Task pot_sample started...");
 	#else
 	err = xTaskCreate(task_CAN_rx, "CAN_rx", 2000, NULL, CAN_RX_PRIORITY, NULL);
 	if (err != pdPASS) error_handler();
-	
+	else rprintf("Task CAN_rx started...");
+
 	err = xTaskCreate(task_led_blink, "led_blink", 512, NULL, 3, NULL);
 	if (err != pdPASS) error_handler();
+	else rprintf("Task led_blink started...");
 	#endif
 
 	//	Common
