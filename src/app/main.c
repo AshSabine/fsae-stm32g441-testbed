@@ -42,11 +42,6 @@
 #define READY_TIMEOUT_MS 10u
 #define POLL_DELAY_TICKS 1u
 
-static SemaphoreHandle_t s_lock;
-bool eeprom_init(void) {
-	s_lock = xSemaphoreCreateMutex();
-	return s_lock != NULL;
-}
 
 // See table 5; Assembles opcode + address header. Opcode bit 3
 // contains A8 (address bit 8), A7..A0 is the second byte sent.
@@ -69,33 +64,7 @@ static bool read_status(uint8_t *sr) {
 	return ok;
 }
 
-//	
-static bool write_page(uint16_t addr, uint16_t n, const uint8_t *in) {
-	bool ok;
-	uint8_t sr;
-
-	// 1): Write WREN as its own transaction
-	uint8_t wren = CMD_WREN;
-	
-	if (!core_SPI_start(EEPROM_SPI)) return false;
-	ok = core_SPI_read_write(EEPROM_SPI, &wren, sizeof wren, NULL, 0);
-	core_SPI_stop(EEPROM_SPI);
-	if (!ok) return false;
-
-	// 2): confirm WEL is set - catches a W pin held low
-	if (!read_status(&sr) || !(sr & SR_WEL)) return false;
-
-	// 3): write page
-	uint8_t hdr[2];
-	mk_hdr(CMD_WRIT, addr, hdr);
-
-	if (!core_SPI_start(EEPROM_SPI)) return false;
-	ok = core_SPI_read_write(EEPROM_SPI, hdr, sizeof hdr, NULL, 0)
-	  && core_SPI_read_write(EEPROM_SPI, (uint8_t *)in, n, NULL, 0);
-	core_SPI_stop(EEPROM_SPI);
-	if (!ok) return false;
-
-	// 4): poll until WIP clears
+static bool wait_ready(void) {
 	TickType_t timeout = pdMS_TO_TICKS(READY_TIMEOUT_MS) + 1;
 	TickType_t t0 = xTaskGetTickCount();
 	for(;;) {
@@ -106,7 +75,44 @@ static bool write_page(uint16_t addr, uint16_t n, const uint8_t *in) {
 	}
 }
 
+//	
+static bool write_page(uint16_t addr, uint16_t n, const uint8_t *in) {
+	bool ok;
+	uint8_t sr;
+
+	// poll EEPROM to ensure ready, then write WREN
+	if (!wait_ready()) return false;
+	uint8_t wren = CMD_WREN;
+
+	if (!core_SPI_start(EEPROM_SPI)) return false;
+	ok = core_SPI_read_write(EEPROM_SPI, &wren, sizeof wren, NULL, 0);
+	core_SPI_stop(EEPROM_SPI);
+	if (!ok) return false;
+
+	// confirm WEL is set - catches a W pin held low
+	if (!read_status(&sr) || !(sr & SR_WEL)) return false;
+
+	// write page
+	uint8_t hdr[2];
+	mk_hdr(CMD_WRIT, addr, hdr);
+
+	if (!core_SPI_start(EEPROM_SPI)) return false;
+	ok = core_SPI_read_write(EEPROM_SPI, hdr, sizeof hdr, NULL, 0)
+	  && core_SPI_read_write(EEPROM_SPI, (uint8_t *)in, n, NULL, 0);
+	core_SPI_stop(EEPROM_SPI);
+	if (!ok) return false;
+
+	// poll until WIP clears
+	return wait_ready();
+}
+
 //	End user functionality
+static SemaphoreHandle_t s_lock;
+bool eeprom_init(void) {
+	s_lock = xSemaphoreCreateMutex();
+	return s_lock != NULL;
+}
+
 bool eeprom_write(uint16_t addr, uint16_t len, const uint8_t *in) {
 	if (in == NULL || len == 0) return false;
 	if ((uint32_t)addr + len > EEPROM_SIZE) return false;
@@ -125,14 +131,14 @@ bool eeprom_write(uint16_t addr, uint16_t len, const uint8_t *in) {
 }
 
 bool eeprom_read(uint16_t addr, uint16_t len, uint8_t *out) {
-	if (len == 0) return false;
+	if (len == 0 || out == NULL) return false;
 	if ((uint32_t)addr + len > EEPROM_SIZE) return false;
 	if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(EEPROM_LOCKOUT_MS)) != pdTRUE) return false;
 	
 	uint8_t hdr[2];
 	mk_hdr(CMD_READ, addr, hdr);
 
-	bool ok = core_SPI_start(EEPROM_SPI);
+	bool ok = wait_ready() && core_SPI_start(EEPROM_SPI);
 	if (ok) {
 		ok = core_SPI_read_write(EEPROM_SPI, hdr, sizeof hdr, NULL, 0)
 		  && core_SPI_read_write(EEPROM_SPI, NULL, 0, out, len);
@@ -174,7 +180,7 @@ void read_task(void *pvParameters) {
 	
 	bool ok = eeprom_read(0x0001, sizeof rx_buff, rx_buff);
 	if (!ok) error_handler();
-	else rprintf("[STM32] Read: \"%.64s\"\n", (char *)rx_buff);
+	else rprintf("[STM32] Read: \"%s\"\n", (char *)rx_buff);
 }
 
 void heartbeat_task(void *pvParameters) {
