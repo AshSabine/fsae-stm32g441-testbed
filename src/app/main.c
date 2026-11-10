@@ -3,145 +3,147 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "can.h"
-#include "clock.h"
+#include "spi.h"
+#include "rtt.h"
 #include "gpio.h"
-#include "filter.h"
+
+#include "clock.h"
 #include "error_handler.h"
 #include "core_config.h"
 
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
+#include "semphr.h"
 
-#if ROLE == ROLE_TX
-static core_filter_t g_pot_filt = {
-	.type = Filter_ROLLING_AVG,
-	.orderX = POT_FILTER_N,
-};
-
-static bool init_pot_adc(void) {
-	if (!core_ADC_init(POT_ADC_INST)) return false;
-	if (!core_ADC_setup_pin(POT_GPIO_PORT, POT_GPIO_PIN, 0)) return false;
-	return true;
-}
-
-//	This pushes data to the software queue. A seperate function moves data from
-//	the software queue to the hardware queue (which must be isolated).
-static volatile uint16_t g_pot_out = POT_ADC_MAX;
-static bool task_pot_sample(void *pvParameters) {
-	(void) pvParameters;
-	TickType_t nextWakeTime = xTaskGetTickCount();
-	for (;;) {
-		//	Read data from ADC
-		uint16_t raw;
-		if (core_ADC_read_channel(PORT_GPIO_PORT*, PORT_GPIO_PIN*, &raw)) {
-			float filt = core_filter_update(raw, &g_pot_filt);
-			g_pot_out = (uint16_t)(filt + 0.5f);
-		}
-
-		//	Push to software queue
-		if (!core_CAN_add_message_to_tx_queue(
-			CAN_INST, POT_CAN_ID, 2,
-			(uint64_t)g_pot_out) return false;
-
-		vTaskDelayUntil(&nextWakeTime, pdMS_TO_TICKS(POT_SAMPLE_MS));
-	}
-}
-
-#else
-#define BLINK_RANGE (BLINK_MAX_MS - BLINK_MIN_MS)
-
-static volatile uint16_t g_adc_val = 0;
-static volatile uint16_t g_blink_ms = BLINK_MIN_MS;
-
-static uint32_t blink_from_adc(uint16_t v) {
-	return BLINK_MIN_MS + ((uint32_t)v * BLINK_RANGE) / POT_ADC_MAX;
-}
-
-static void task_led_blink(void *pvParameters) {
-	(void) pvParameters;
-	TickType_t nextWakeTime = xTaskGetTickCount();
-	for (;;) {
-		//	Find blink time
-		g_blink_ms = blink_from_adc(g_adc_val);
-		TickType_t half = pdMS_TO_TICKS(g_blink_ms >> 1);
-
-		//	Blink
-		core_GPIO_digital_write(LED_GPIO_PORT, LED_GPIO_PIN, true);
-		vTaskDelayUntil(&nextWakeTime, half);
-		core_GPIO_digital_write(LED_GPIO_PORT, LED_GPIO_PIN, false);
-		vTaskDelayUntil(&nextWakeTime, half);
-	}
-}
-#endif
-
-/**    ██████╗ █████╗ ███╗   ██╗
- *    ██╔════╝██╔══██╗████╗  ██║
- *    ██║     ███████║██╔██╗ ██║
- *    ██║     ██╔══██║██║╚██╗██║
- *    ╚██████╗██║  ██║██║ ╚████║
- *     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝
+/**   ███████╗███████╗██████╗ ██████╗  ██████╗ ███╗   ███╗
+ *    ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔═══██╗████╗ ████║
+ *    █████╗  █████╗  ██████╔╝██████╔╝██║   ██║██╔████╔██║
+ *    ██╔══╝  ██╔══╝  ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║
+ *    ███████╗███████╗██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║
+ *    ╚══════╝╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝
  */
-#define CAN_TX_PRIORITY (tskIDLE_PRIORITY + 2)
-#define CAN_RX_PRIORITY (tskIDLE_PRIORITY + 2)
 
-static core_CAN_module_t *g_can;
-static bool init_CAN(void) {
-	if (!core_CAN_init(CAN_INST, CAN_BAUD)) return false;
+/* Instruction opcodes - table 4 */
+#define CMD_WRSR 0x01u
+#define CMD_WRIT 0x02u
+#define CMD_READ 0x03u
+#define CMD_WRDI 0x04u
+#define CMD_RDSR 0x05u
+#define CMD_WREN 0x06u
 
-	g_can = core_CAN_convert(CAN_INST);
-	if (g_can == NULL) return false;
+/* Status register bits - table 6 */
+#define SR_WIP (1u << 0)
+#define SR_WEL (1u << 1)
 
-	#if ROLE == ROLE_RX
-	if (!core_CAN_add_filter(CAN_INST, false, POT_CAN_ID, POT_CAN_ID)) return false;
-	#endif
+/* Write cycle time - tables 18/19 */
+#define WRITE_MAX_MS  5u
+#define READY_TIMEOUT_MS 10u
+#define POLL_DELAY_TICKS 1u
 
-	return true;
+uint8_t txbuf[4] = {0xaa, 0xbb, 0xcc, 0xdd};
+uint8_t rxbuf[4];
+
+static SemaphoreHandle_t s_lock;
+bool eeprom_init(void) {
+	s_lock = xSemaphoreCreateMutex();
+	return s_lock != NULL;
 }
 
-//	Moves messages from software to hardware queue. Hardware queue is limited to
-//	3 messages total and must be closely monitored to avoid packet loss. Moving
-//	data in a seperate task prevents this from happening.
-#if ROLE == ROLE_TX
-static bool CAN_tx_main() {
-	core_CAN_send_from_tx_queue_task(CAN_INST);
-	return false;
+// See table 5; Assembles opcode + address header. Opcode bit 3
+// contains A8 (address bit 8), A7..A0 is the second byte sent.
+static void mk_hdr(uint8_t cmd, uint16_t addr, uint8_t out[2]) {
+	out[0] = (uint8_t)(cmd | (((addr >> 8) & 1u) << 3));
+	out[1] = (uint8_t)(addr & 0xFFu);
 }
 
-static void task_CAN_tx(void *pvParameters) {
-	(void) pvParameters;
-	CAN_tx_main();
-	if (!CAN_tx_main()) error_handler();
+// See table 6. sends a single RDSR instruction to the EEPROM and
+// stores the RDSR byte in sr. used to query WEL & WIP bits. 
+static bool read_status(uint8_t *sr) {
+	uint8_t tx[2] = { CMD_RDSR, 0x00 };
+	uint8_t rx[2];
+
+	if (!core_SPI_start(EEPROM_SPI)) return false;
+	bool ok = core_SPI_read_write(EEPROM_SPI, tx, sizeof tx, rx, sizeof rx);
+	core_SPI_stop(EEPROM_SPI);
+
+	if (ok) *sr = rx[1];
+	return ok;
 }
 
-//	Moves messages from hardware to software queue. Hardware queue is limited to
-//	3 messages total and must be closely monitored to avoid packet loss. Moving
-//	data in a seperate task prevents this from happening.
-#else
-static void CAN_rx_main() {
-	CanMessage_s msg;
-	if (!core_CAN_receive_from_queue(CAN_INST, &msg)) return;
+//	
+static bool write_page(uint16_t addr, uint16_t n, const uint8_t *in) {
+	bool ok;
+	uint8_t sr;
+
+	// 1): Write WREN as its own transaction
+	uint8_t wren = CMD_WREN;
 	
-	int id = msg.id;
-	switch (id) {
-		case POT_CAN_ID:
-			if (msg.dlc != 2) break;
+	if (!core_SPI_start(EEPROM_SPI)) return false;
+	ok = core_SPI_read_write(EEPROM_SPI, &wren, sizeof wren, NULL, 0);
+	core_SPI_stop(EEPROM_SPI);
+	if (!ok) return false;
 
-			uint16 v = (uint16_t)(msg.data & 0xFFFFU);
-			if (v > POT_ADC_MAX) v = POT_ADC_MAX;
-			g_adc_val = v;
-			
-			break;
-		default: break;
+	// 2): confirm WEL is set - catches a W pin held low
+	if (!read_status(&sr) || !(sr & SR_WEL)) return false;
+
+	// 3): write page
+	uint8_t hdr[2];
+	mk_hdr(CMD_WRIT, addr, hdr);
+
+	if (!core_SPI_start(EEPROM_SPI)) return false;
+	ok = core_SPI_read_write(EEPROM_SPI, hdr, sizeof hdr, NULL, 0)
+	  && core_SPI_read_write(EEPROM_SPI, (uint8_t *)in, n, NULL, 0);
+	core_SPI_stop(EEPROM_SPI);
+	if (!ok) return false;
+
+	// 4): poll until WIP clears
+	TickType_t timeout = pdMS_TO_TICKS(READY_TIMEOUT_MS) + 1;
+	TickType_t t0 = xTaskGetTickCount();
+	for(;;) {
+		if (!read_status(&sr)) return false;
+		if (!(sr & SR_WIP)) return true;
+		if ((xTaskGetTickCount() - t0) >= timeout) return false;
+		vTaskDelay(POLL_DELAY_TICKS);
 	}
 }
 
-static void task_CAN_rx(void *pvParameters) {
-	(void) pvParameters;
-	for (;;) {CAN_rx_main();}
+//	End user functionality
+bool eeprom_write(uint16_t addr, uint16_t len, const uint8_t *in) {
+	if (in == NULL || len == 0) return false;
+	if ((uint32_t)addr + len > EEPROM_SIZE) return false;
+	if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(EEPROM_LOCKOUT_MS)) != pdTRUE) return false;
+	
+	bool ok = true;
+	while (ok && len > 0) {
+		uint16_t room = EEPROM_PAGE - (addr % EEPROM_PAGE);
+		uint16_t chunk = (len < room) ? len : room;
+		ok = write_page(addr, chunk, in);
+		addr += chunk; in += chunk; len -= chunk;
+	}
+
+	xSemaphoreGive(s_lock);
+	return ok;
 }
-#endif
+
+bool eeprom_read(uint16_t addr, uint16_t len, uint8_t *out) {
+	if (len == 0) return false;
+	if ((uint32_t)addr + len > EEPROM_SIZE) return false;
+	if (xSemaphoreTake(s_lock, pdMS_TO_TICKS(EEPROM_LOCKOUT_MS)) != pdTRUE) return false;
+	
+	uint8_t hdr[2];
+	mk_hdr(CMD_READ, addr, hdr);
+
+	bool ok = core_SPI_start(EEPROM_SPI);
+	if (ok) {
+		ok = core_SPI_read_write(EEPROM_SPI, hdr, sizeof hdr, NULL, 0)
+		  && core_SPI_read_write(EEPROM_SPI, NULL, 0, out, len);
+		core_SPI_stop(EEPROM_SPI);
+	}
+
+	xSemaphoreGive(s_lock);
+	return ok;
+}
 
 /**   ███╗   ███╗ █████╗ ██╗███╗   ██╗
  *    ████╗ ████║██╔══██╗██║████╗  ██║
@@ -150,9 +152,13 @@ static void task_CAN_rx(void *pvParameters) {
  *    ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║
  *    ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
  */
+
 void heartbeat_task(void *pvParameters) {
 	(void) pvParameters;
 	while(true) {
+		core_SPI_read_write(SPI1, txbuf, 2, rxbuf, 2);
+		rprintf("rxbuf: %02x%02x%02x%02x \n", rxbuf[0], rxbuf[1], rxbuf[2], rxbuf[3]);
+
 		core_GPIO_toggle_heartbeat();
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
@@ -163,42 +169,20 @@ int main(void) {
 	HAL_Init();
 	
 	if (!core_clock_init()) error_handler();
-	if (!init_CAN()) error_handler();
+	if (!core_SPI_init(SPI1, GPIOA, GPIO_PIN_4)) error_handler();
+	if (!eeprom_init()) error_handler();
 
 	//	Common
+	core_RTT_init();
 	core_heartbeat_init(GPIOB, GPIO_PIN_10);
 	core_GPIO_set_heartbeat(GPIO_PIN_RESET);
 	
-	if (!core_GPIO_init(LED_GPIO_PORT, LED_GPIO_PIN, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL)) error_handler();
-
-	//	Role-dependent
-	#if ROLE == ROLE_TX
-	if (!init_pot_adc()) error_handler();
-	core_filter_init(&g_pot_filt);
-	#endif
-
 	//		Tasks
 	int err;
-	//	Role-dependent
-	#if ROLE == ROLE_TX
-	err = xTaskCreate(task_CAN_tx, "CAN_tx", 2000, NULL, CAN_TX_PRIORITY, NULL);
-	if (err != pdPASS) error_handler();
-	
-	err = xTaskCreate(task_pot_sample, "pot_sample", 512, NULL, 3, NULL);
-	if (err != pdPASS) error_handler();
-	#else
-	err = xTaskCreate(task_CAN_rx, "CAN_rx", 2000, NULL, CAN_RX_PRIORITY, NULL);
-	if (err != pdPASS) error_handler();
-	
-	err = xTaskCreate(task_led_blink, "led_blink", 512, NULL, 3, NULL);
-	if (err != pdPASS) error_handler();
-	#endif
-
 	//	Common
 	err = xTaskCreate(heartbeat_task, "heartbeat", 1000, NULL, 4, NULL);
-	if (err != pdPASS) {
-		error_handler();
-	}
+	if (err != pdPASS) error_handler();
+	else rprintf("heartbeat PASS\n");
 	
 	//	RTOS stuffs
 	NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
