@@ -65,6 +65,7 @@ static bool read_status(uint8_t *sr) {
 }
 
 static bool wait_ready(void) {
+	uint8_t sr;
 	TickType_t timeout = pdMS_TO_TICKS(READY_TIMEOUT_MS) + 1;
 	TickType_t t0 = xTaskGetTickCount();
 	for(;;) {
