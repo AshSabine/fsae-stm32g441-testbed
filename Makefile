@@ -35,6 +35,13 @@ STM32_LD_FLAGS := $(STM32_COMMON_FLAGS) -static -Wl,--gc-sections -T $(STM32_LD_
 #    ░█▀▀░█▀█░█░█░█▀▄░█▀▀░█▀▀░█▀▀
 #    ░▀▀█░█░█░█░█░█▀▄░█░░░█▀▀░▀▀█
 #    ░▀▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀
+# ========= Environment Vars =========
+STM32CUBE_DIR := $(strip $(STM32_CUBE_G4))
+FREERTOS_DIR := $(strip $(FREERTOS_KERNEL))
+RTT_DIR := $(strip $(SEGGER_RTT))
+DBC_DIR := $(strip $(FSAE_DBC))
+CORE_DIR := $(FSAE_CORE_G441)/src/driver
+
 # ========== Variable Setup ===========
 ALL_MODS :=
 
@@ -74,7 +81,6 @@ DRIVER_SRCS := $(call rwildcard,$(DRIVER_DIRS),*.c)
 
 # ========= External Sources ==========
 # STM32CUBE
-STM32CUBE_DIR := $(strip $(STM32_CUBE_G4))
 STM32CUBE_HAL_DIR := $(STM32CUBE_DIR)/Drivers/STM32G4xx_HAL_Driver
 STM32CUBE_CMSIS_DIR := $(STM32CUBE_DIR)/Drivers/CMSIS/Device/ST/STM32G4xx
 SRCS_STM32CUBE := $(STM32CUBE_DIR) \
@@ -88,7 +94,6 @@ $(eval $(call ADDMODULE,STM32CUBE,$(SRCS_STM32CUBE),$(INCS_STM32CUBE),$(STM32CUB
 STM32CUBE_SRCS += $(STM32CUBE_CMSIS_DIR)/Source/Templates/system_stm32g4xx.c
 
 # FREERTOS
-FREERTOS_DIR := $(strip $(FREERTOS_KERNEL))
 SRCS_FREERTOS := $(FREERTOS_DIR) \
                  $(FREERTOS_DIR)/portable/GCC/ARM_CM4F
 INCS_FREERTOS := $(FREERTOS_DIR)/include \
@@ -98,7 +103,6 @@ $(eval $(call ADDMODULE,FREERTOS,$(SRCS_FREERTOS),$(INCS_FREERTOS),$(FREERTOS_DI
 FREERTOS_SRCS += $(FREERTOS_DIR)/portable/MemMang/heap_4.c
 
 # SEGGER RTT
-RTT_DIR := $(strip $(SEGGER_RTT))
 ifneq ($(wildcard $(RTT_DIR)),)
 INCS_RTT := $(RTT_DIR)/src $(RTT_DIR)/RTT
 $(eval $(call ADDMODULE,RTT,,$(INCS_RTT),$(RTT_DIR)))
@@ -108,7 +112,6 @@ RTT_SRCS += $(RTT_DIR)/RTT/SEGGER_RTT.c \
 endif
 
 # RITFSAE DBC
-DBC_DIR := $(strip $(FSAE_DBC))
 ifneq ($(wildcard $(DBC_DIR)),)
 INCS_DBC := $(DBC_DIR)/c_files
 $(eval $(call ADDMODULE,DBC,,$(INCS_DBC),$(DBC_DIR)))
@@ -116,7 +119,6 @@ DBC_SRCS += $(call rwildcard,$(DBC_DIR)/c_files,*.c)
 endif
 
 # RITFSAE Core
-CORE_DIR := $(FSAE_CORE_G441)/src/driver
 INCS_CORE := $(CORE_DIR)/Inc $(CORE_DIR)/Src $(INCS_STM32CUBE) $(INCS_FREERTOS) $(INCS_RTT)
 $(eval $(call ADDMODULE,CORE,,$(INCS_CORE),$(CORE_DIR)))
 CORE_SRCS += $(call rwildcard,$(CORE_DIR)/Src,*.c)
