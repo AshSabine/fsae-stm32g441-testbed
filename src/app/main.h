@@ -10,6 +10,9 @@ void Error_Handler(void);
 #define BLINK_MIN_MS	100U
 #define BLINK_MAX_MS	1000U
 
+#define HEARTBEAT_TX    100U
+#define HEARTBEAT_RX    200U
+
 // Potentiometer config
 #define POT_GPIO_PORT	GPIOB
 #define POT_GPIO_PIN	GPIO_PIN_12
