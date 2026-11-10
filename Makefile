@@ -27,7 +27,7 @@ STM32_OBJDUMP := $(STM32_PREFIX)-objdump
 
 # Cross-compilation options
 STM32_COMMON_FLAGS := -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -D USE_HAL_DRIVER -D STM32G441xx
-STM32_CC_FLAGS := $(STM32_COMMON_FLAGS) -ffreestanding -ffunction-sections -fdata-sections -Wall -Wextra -Werror=implicit-function-declaration -g
+STM32_CC_FLAGS := $(STM32_COMMON_FLAGS) -ffreestanding -ffunction-sections -fdata-sections -Wall -Wextra -Werror=implicit-function-declaration -g -Wno-packed-bitfield-compat
 STM32_ASM_FLAGS := $(STM32_CC_FLAGS)
 STM32_LD_SCRIPT := STM32G441xBxx_FLASH.ld
 STM32_LD_FLAGS := $(STM32_COMMON_FLAGS) -static -Wl,--gc-sections -T $(STM32_LD_SCRIPT) -specs=nano.specs -specs=nosys.specs
@@ -58,17 +58,18 @@ $(1)_OBJDIR := $$(STM32_BUILD_DIR)/obj/$(1)
 
 $(1)_SRCS := $$(foreach d,$(2),$$(wildcard $$(d)/*.c))
 $(1)_INCS := $(3)
+$(1)_ROOT := $(4)
 endef
 
 # ========= Internal Sources ==========
 # App
 APP_DIRS := src/app
-$(eval $(call ADDMODULE,APP,,$(APP_DIRS)))
+$(eval $(call ADDMODULE,APP,,$(APP_DIRS),$(APP_DIRS)))
 APP_SRCS += $(call rwildcard,$(APP_DIRS),*.c)
 
 # Driver
 DRIVER_DIRS := src/driver
-$(eval $(call ADDMODULE,DRIVER,,$(DRIVER_DIRS)))
+$(eval $(call ADDMODULE,DRIVER,,$(DRIVER_DIRS),$(DRIVER_DIRS)))
 DRIVER_SRCS := $(call rwildcard,$(DRIVER_DIRS),*.c)
 
 # ========= External Sources ==========
@@ -83,7 +84,7 @@ INCS_STM32CUBE := $(STM32CUBE_DIR)/Drivers/CMSIS/Include \
                   $(STM32CUBE_HAL_DIR)/Inc \
                   $(STM32CUBE_CMSIS_DIR)/Include
 
-$(eval $(call ADDMODULE,STM32CUBE,$(SRCS_STM32CUBE),$(INCS_STM32CUBE)))
+$(eval $(call ADDMODULE,STM32CUBE,$(SRCS_STM32CUBE),$(INCS_STM32CUBE),$(STM32CUBE_DIR)))
 STM32CUBE_SRCS += $(STM32CUBE_CMSIS_DIR)/Source/Templates/system_stm32g4xx.c
 
 # FREERTOS
@@ -93,14 +94,14 @@ SRCS_FREERTOS := $(FREERTOS_DIR) \
 INCS_FREERTOS := $(FREERTOS_DIR)/include \
                  $(FREERTOS_DIR)/portable/GCC/ARM_CM4F
 
-$(eval $(call ADDMODULE,FREERTOS,$(SRCS_FREERTOS),$(INCS_FREERTOS)))
+$(eval $(call ADDMODULE,FREERTOS,$(SRCS_FREERTOS),$(INCS_FREERTOS),$(FREERTOS_DIR)))
 FREERTOS_SRCS += $(FREERTOS_DIR)/portable/MemMang/heap_4.c
 
 # SEGGER RTT
 RTT_DIR := $(strip $(SEGGER_RTT))
 ifneq ($(wildcard $(RTT_DIR)),)
 INCS_RTT := $(RTT_DIR)/src $(RTT_DIR)/RTT
-$(eval $(call ADDMODULE,RTT,,$(INCS_RTT)))
+$(eval $(call ADDMODULE,RTT,,$(INCS_RTT),$(RTT_DIR)))
 RTT_SRCS += $(RTT_DIR)/RTT/SEGGER_RTT.c \
             $(RTT_DIR)/Syscalls/SEGGER_RTT_Syscalls_GCC.c \
             $(RTT_DIR)/RTT/SEGGER_RTT_printf.c
@@ -110,14 +111,14 @@ endif
 DBC_DIR := $(strip $(FSAE_DBC))
 ifneq ($(wildcard $(DBC_DIR)),)
 INCS_DBC := $(DBC_DIR)/c_files
-$(eval $(call ADDMODULE,DBC,,$(INCS_DBC)))
+$(eval $(call ADDMODULE,DBC,,$(INCS_DBC),$(DBC_DIR)))
 DBC_SRCS += $(call rwildcard,$(DBC_DIR)/c_files,*.c)
 endif
 
 # RITFSAE Core
 CORE_DIR := $(FSAE_CORE_G441)/src/driver
 INCS_CORE := $(CORE_DIR)/Inc $(CORE_DIR)/Src $(INCS_STM32CUBE) $(INCS_FREERTOS) $(INCS_RTT)
-$(eval $(call ADDMODULE,CORE,,$(INCS_CORE)))
+$(eval $(call ADDMODULE,CORE,,$(INCS_CORE),$(CORE_DIR)))
 CORE_SRCS += $(call rwildcard,$(CORE_DIR)/Src,*.c)
 
 #    ░█▀▀░█▀█░█▄█░█▀█░▀█▀░█░░░█▀▀
@@ -137,7 +138,7 @@ RAW_INCS += $$($(1)_INCS)
 VPATH += $$(sort $$(dir $$($(1)_SRCS)))
 $$($(1)_OBJDIR)/%.o: %.c
 	@mkdir -p $$(@D)
-	$$(call LOG,CC,$(1),$$<,$$(INC_FLAGS_SHORT) -o $$@)
+	$$(call LOG,CC,$(1),$$<,$$(ALL_INC_SHORT) -o $$@)
 	$$(Q)$$(STM32_CC) $$(STM32_CC_FLAGS) $$(ALL_INC_FLAGS) -c $$< -o $$@
 endif
 endef
@@ -160,7 +161,7 @@ endef
 ## @param $3 path
 ## @param $4 extra
 _LOG_0 = $(if $(2),[$(2)] )$(notdir $(3))
-_LOG_1 = $(call short,$(3))
+_LOG_1 = $(call SHORTEN,$(3))
 _LOG_2 = $(_LOG_1) $(4)
 
 ifneq ($(filter $(V),0 1 2),)
@@ -170,8 +171,9 @@ endif
 # =========== Compile code ============
 $(foreach mod,$(ALL_MODS),$(eval $(call GENRULES,$(mod))))
 
-ALL_INC_DIRS = := $(sort $(RAW_INCS))
-ALL_INC_FLAGS = -I src $(addprefix -I,$(ALL_INC_DIRS))
+ALL_INC_DIRS := $(sort $(RAW_INCS))
+ALL_INC_FLAGS := -I src $(addprefix -I,$(ALL_INC_DIRS))
+ALL_INC_SHORT := -I src $(addprefix -I,$(call SHORTEN,$(ALL_INC_DIRS)))
 
 OUTNAME := $(STM32_BUILD_DIR)/$(PROJECT_NAME)-$(PROJECT_VERSION)
 
@@ -199,12 +201,12 @@ $(OUTNAME).elf: $(RAW_OBJS) $(STARTUP_OBJ)
 
 $(OUTNAME).ihex: $(OUTNAME).elf
 	@mkdir -p $(@D)
-	$(call LOG,IHEX,,$@,)
+	$(call LOG,IHEX,,$@)
 	$(Q)$(STM32_OBJCOPY) -O ihex $< $@
 
 $(STARTUP_OBJ): src/startup_stm32g441xx.s
 	@mkdir -p $(@D)
-	$(call LOG,AS,STM32CUBE,$<)
+	$(call LOG,ASM,STM32CUBE,$<)
 	$(Q)$(STM32_CC) $(STM32_ASM_FLAGS) -c $< -o $@
 
 # Misc targets
