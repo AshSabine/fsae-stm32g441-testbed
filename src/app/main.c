@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "spi.h"
 #include "rtt.h"
@@ -40,9 +41,6 @@
 #define WRITE_MAX_MS  5u
 #define READY_TIMEOUT_MS 10u
 #define POLL_DELAY_TICKS 1u
-
-uint8_t txbuf[4] = {0xaa, 0xbb, 0xcc, 0xdd};
-uint8_t rxbuf[4];
 
 static SemaphoreHandle_t s_lock;
 bool eeprom_init(void) {
@@ -153,12 +151,35 @@ bool eeprom_read(uint16_t addr, uint16_t len, uint8_t *out) {
  *    ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
  */
 
+uint8_t tx_buff[24];
+uint8_t rx_buff[24];
+
+uint16_t test_addr = 0x0001 & 0x01FF;
+
+void write_task(void *pvParameters) {
+	(void) pvParameters;
+	vTaskDelay(pdMS_TO_TICKS(100));
+	
+	const char *banner = "[EEPROM] M95040-W READY!";
+	memcpy(&tx_buff[0], banner, sizeof tx_buff);
+
+	bool ok = eeprom_write(0x0001, sizeof tx_buff, tx_buff);
+	if (!ok) error_handler();
+	else rprintf("[STM32] Write successful!\n");
+}
+
+void read_task(void *pvParameters) {
+	(void) pvParameters;
+	vTaskDelay(pdMS_TO_TICKS(200));
+	
+	bool ok = eeprom_read(0x0001, sizeof rx_buff, rx_buff);
+	if (!ok) error_handler();
+	else rprintf("[STM32] Read: \"%.64s\"\n", (char *)rx_buff);
+}
+
 void heartbeat_task(void *pvParameters) {
 	(void) pvParameters;
 	while(true) {
-		core_SPI_read_write(SPI1, txbuf, 2, rxbuf, 2);
-		rprintf("rxbuf: %02x%02x%02x%02x \n", rxbuf[0], rxbuf[1], rxbuf[2], rxbuf[3]);
-
 		core_GPIO_toggle_heartbeat();
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
@@ -183,6 +204,14 @@ int main(void) {
 	err = xTaskCreate(heartbeat_task, "heartbeat", 1000, NULL, 4, NULL);
 	if (err != pdPASS) error_handler();
 	else rprintf("heartbeat PASS\n");
+
+	err = xTaskCreate(write_task, "write", 1000, NULL, 4, NULL);
+	if (err != pdPASS) error_handler();
+	else rprintf("write PASS\n");
+
+	err = xTaskCreate(read_task, "read", 1000, NULL, 4, NULL);
+	if (err != pdPASS) error_handler();
+	else rprintf("read PASS\n");
 	
 	//	RTOS stuffs
 	NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
